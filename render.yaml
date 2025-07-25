@@ -3,7 +3,7 @@ services:
     name: id-document-extractor
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && pip install -r web_app/requirements.txt"
     startCommand: "gunicorn --chdir web_app app:app"
     envVars:
       - key: GEMINI_API_KEY
