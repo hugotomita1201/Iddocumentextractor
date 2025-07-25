@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import re
 import google.generativeai as genai
 import pandas as pd
 from PIL import Image
@@ -161,8 +162,7 @@ def extract():
                 json_schema_str = prompt_template[json_start:json_end]
                 
                 # Parse the JSON schema to get the expected order of keys
-                expected_schema = json.loads(json_schema_str)
-                expected_keys = list(expected_schema.keys())
+                expected_keys = re.findall(r'"(\w+)"\s*:', json_schema_str)
 
                 # Create an ordered dictionary for the response
                 ordered_response_data = {}
