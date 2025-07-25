@@ -153,14 +153,30 @@ def extract():
             extracted_data, success = extract_with_gemini(image, doc_type)
 
             if success:
-                extracted_data.update(
-                    {
-                        "document_type": doc_type,
-                        "filename": file.filename,
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                )
-                return jsonify(extracted_data)
+                # Get the prompt for the current document type
+                prompt_template = PROMPTS[doc_type]
+                # Extract the JSON part from the prompt
+                json_start = prompt_template.find('{')
+                json_end = prompt_template.rfind('}') + 1
+                json_schema_str = prompt_template[json_start:json_end]
+                
+                # Parse the JSON schema to get the expected order of keys
+                expected_schema = json.loads(json_schema_str)
+                expected_keys = list(expected_schema.keys())
+
+                # Create an ordered dictionary for the response
+                ordered_response_data = {}
+                for key in expected_keys:
+                    if key in extracted_data:
+                        ordered_response_data[key] = extracted_data[key]
+                
+                # Add the additional fields (document_type, filename, timestamp)
+                # These are not part of the Gemini prompt, so they should be added after the ordered fields.
+                ordered_response_data["document_type"] = doc_type
+                ordered_response_data["filename"] = file.filename
+                ordered_response_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                return jsonify(ordered_response_data)
             else:
                 return (
                     jsonify({"error": "Failed to extract data from the document."}),
