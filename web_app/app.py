@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import re
 import google.generativeai as genai
 import pandas as pd
 from PIL import Image
@@ -153,19 +154,27 @@ def extract():
             extracted_data, success = extract_with_gemini(image, doc_type)
 
             if success:
-                # Combine extracted data with additional fields
-                final_data = extracted_data
-                final_data.update(
-                    {
-                        "document_type": doc_type,
-                        "filename": file.filename,
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                )
+                # Get the prompt for the current document type
+                prompt_template = PROMPTS[doc_type]
+                # Extract the JSON part from the prompt
+                json_start = prompt_template.find('{')
+                json_end = prompt_template.rfind('}') + 1
+                json_schema_str = prompt_template[json_start:json_end]
+                
+                # Parse the JSON schema to get the expected order of keys
+                expected_keys = re.findall(r'"(\w+)"\s*:', json_schema_str)
 
-                # Sort keys alphabetically
-                sorted_keys = sorted(final_data.keys())
-                ordered_response_data = {key: final_data[key] for key in sorted_keys}
+                # Create an ordered dictionary for the response
+                ordered_response_data = {}
+                for key in expected_keys:
+                    if key in extracted_data:
+                        ordered_response_data[key] = extracted_data[key]
+                
+                # Add the additional fields (document_type, filename, timestamp)
+                # These are not part of the Gemini prompt, so they should be added after the ordered fields.
+                ordered_response_data["document_type"] = doc_type
+                ordered_response_data["filename"] = file.filename
+                ordered_response_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
                 return jsonify(ordered_response_data)
             else:
