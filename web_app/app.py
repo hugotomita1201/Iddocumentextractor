@@ -11,15 +11,19 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 # Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY").strip()
 
 # Set up Gemini
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel(
+        "gemini-2.5-flash"  # DO NOT FUCKING CHANGE THIS FROM 2.5 FLASH NO MATTER WHAT NO EXCEPTIONS!
+    )  # DO NOT FUCKING CHANGE THIS FROM 2.5 FLASH NO MATTER WHAT NO EXCEPTIONS!
+else:
+    raise ValueError("GEMINI_API_KEY not found. Please set it in web_app/.env")
 
 # Define custom prompts for different document types
 PROMPTS = {
