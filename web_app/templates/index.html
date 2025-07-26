@@ -1,40 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID Document Extractor</title>
+    <title>ID Document Extractor with Drag & Drop</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/dropzone/dropzone.min.css') }}">
 </head>
+
 <body>
     <header>
         <h1>ID Document Extractor</h1>
-        <p>Upload an image of your ID document, select the document type, and click 'Extract Information' to get structured data.</p>
+        <p>Upload an image of your ID document, select the document type, and click 'Extract Information' to get
+            structured data.</p>
     </header>
 
     <main>
         <div class="container">
             <div class="upload-section">
                 <h2>Upload Document</h2>
-                <div id="image-preview-container" style="text-align: center; margin-bottom: 1.5rem; display: none;">
-                    <img id="image-preview" src="#" alt="Image Preview" style="max-width: 100%; max-height: 300px; border: 1px solid #ccc; border-radius: 4px;"/>
+
+                <!-- Traditional file input for fallback -->
+                <div class="form-group">
+                    <label for="doc_type">Select Document Type:</label>
+                    <select id="doc_type" name="doc_type">
+                        <option value="US Passport">U.S. Passport</option>
+                        <option value="Japanese Passport">Japanese Passport</option>
+                        <option value="US Driver's License">U.S. Driver's License</option>
+                        <option value="US Permanent Resident Card">U.S. Permanent Resident Card</option>
+                    </select>
                 </div>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="doc_type">Select Document Type:</label>
-                        <select id="doc_type" name="doc_type">
-                            <option value="US Passport">U.S. Passport</option>
-                            <option value="Japanese Passport">Japanese Passport</option>
-                            <option value="US Driver's License">U.S. Driver's License</option>
-                            <option value="US Permanent Resident Card">U.S. Permanent Resident Card</option>
-                        </select>
+
+                <!-- Drag and Drop Zone -->
+                <div id="drag-drop-area" class="dropzone">
+                    <div class="dz-message">
+                        <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <h3>Drag & Drop Files or Folders Here</h3>
+                        <p>Or click to browse your files</p>
+                        <small>Supports: PNG, JPG, JPEG files and folder hierarchies</small>
                     </div>
-                    <div class="form-group">
-                        <label for="file">Choose an image file:</label>
-                        <input type="file" id="file" name="file" accept="image/png, image/jpeg">
+                </div>
+
+                <!-- File List -->
+                <div id="uploaded-files" style="display: none;">
+                    <h3>Selected Files:</h3>
+                    <ul id="file-list"></ul>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progress-container" style="display: none;">
+                    <div class="progress-info">
+                        <span id="progress-text">Uploading files...</span>
+                        <span id="progress-percent">0%</span>
                     </div>
-                    <button type="submit">Extract Information</button>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Hidden traditional form for fallback -->
+                <form id="upload-form" enctype="multipart/form-data" style="display: none;">
+                    <input type="file" id="file" name="file" accept="image/png, image/jpeg" multiple>
                 </form>
+
+                <!-- Extract button -->
+                <button type="button" id="extract-button" class="extract-btn" disabled>Extract Information</button>
             </div>
 
             <div class="results-section">
@@ -48,10 +84,12 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2025 Government Document Portal. All rights reserved.</p>
-    </footer>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/dropzone/dropzone.min.js') }}"></script>
+    <script>
+        Dropzone.autoDiscover = false;
+    </script>
+    <script src="{{ url_for('static', filename='js/drag-drop.js') }}"></script>
 </body>
+
 </html>

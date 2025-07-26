@@ -138,54 +138,49 @@ def index():
 def extract():
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    files = request.files.getlist("file")
+    if not files or all(file.filename == "" for file in files):
+        return jsonify({"error": "No selected files"}), 400
 
     doc_type = request.form.get("doc_type")
     if not doc_type or doc_type not in PROMPTS:
         return jsonify({"error": "Invalid document type"}), 400
 
-    if file:
-        try:
-            image = Image.open(file.stream)
-            image = preprocess_image(image)
+    results = []
+    
+    for file in files:
+        if file.filename:
+            try:
+                image = Image.open(file.stream)
+                image = preprocess_image(image)
 
-            extracted_data, success = extract_with_gemini(image, doc_type)
+                extracted_data, success = extract_with_gemini(image, doc_type)
 
-            if success:
-                # Get the prompt for the current document type
-                prompt_template = PROMPTS[doc_type]
-                # Extract the JSON part from the prompt
-                json_start = prompt_template.find('{')
-                json_end = prompt_template.rfind('}') + 1
-                json_schema_str = prompt_template[json_start:json_end]
-                
-                # Parse the JSON schema to get the expected order of keys
-                expected_keys = re.findall(r'"(\w+)"\s*:', json_schema_str)
+                if success:
+                    if isinstance(extracted_data, dict):
+                        extracted_data["document_type"] = doc_type
+                        extracted_data["filename"] = file.filename
+                        extracted_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        results.append(extracted_data)
+                    else:
+                        results.append({
+                            "filename": file.filename,
+                            "error": "Invalid data format"
+                        })
+                else:
+                    results.append({
+                        "filename": file.filename,
+                        "error": extracted_data.get("error", "Failed to extract data")
+                    })
+            except Exception as e:
+                results.append({
+                    "filename": file.filename,
+                    "error": str(e)
+                })
 
-                # Create an ordered dictionary for the response
-                ordered_response_data = {}
-                for key in expected_keys:
-                    if key in extracted_data:
-                        ordered_response_data[key] = extracted_data[key]
-                
-                # Add the additional fields (document_type, filename, timestamp)
-                # These are not part of the Gemini prompt, so they should be added after the ordered fields.
-                ordered_response_data["document_type"] = doc_type
-                ordered_response_data["filename"] = file.filename
-                ordered_response_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-                return jsonify(ordered_response_data)
-            else:
-                return (
-                    jsonify({"error": "Failed to extract data from the document."}),
-                    500,
-                )
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+    return jsonify(results)
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="127.0.0.1", port=port, debug=False)

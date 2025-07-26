@@ -35,11 +35,12 @@ main {
     gap: 2rem;
 }
 
-.upload-section, .results-section {
+.upload-section,
+.results-section {
     background-color: #fff;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
@@ -59,7 +60,8 @@ label {
     font-weight: bold;
 }
 
-select, input[type="file"] {
+select,
+input[type="file"] {
     width: 100%;
     padding: 0.8rem;
     border: 1px solid #ccc;
@@ -98,12 +100,218 @@ button:hover {
     background-color: #218838;
 }
 
-footer {
-    background-color: #003366;
-    color: #fff;
+
+/* Drag and Drop Styles */
+.dropzone {
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    padding: 40px 20px;
     text-align: center;
-    padding: 1rem;
-    position: fixed;
-    bottom: 0;
+    margin: 20px 0;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+    background: #e3f2fd;
+    border-color: #0056b3;
+}
+
+.dropzone .dz-message {
+    color: #495057;
+}
+
+.upload-icon {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.dropzone h3 {
+    margin: 10px 0;
+    color: #003366;
+}
+
+.dropzone p {
+    margin: 5px 0;
+    color: #6c757d;
+}
+
+.dropzone small {
+    color: #868e96;
+}
+
+.file-list {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.file-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.file-list li {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-list li:last-child {
+    border-bottom: none;
+}
+
+.file-size {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.progress-container {
+    margin: 20px 0;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.progress-bar {
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+}
+
+.extract-btn {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    margin-top: 10px;
     width: 100%;
+    max-width: 300px;
+}
+
+.extract-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0056b3, #003d82);
+    transform: translateY(-1px);
+}
+
+.extract-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.extract-btn.generating {
+    background: #28a745;
+    position: relative;
+}
+
+.extract-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.dz-preview {
+    display: none;
+}
+
+/* Vertical List Styles */
+.results-list {
+    margin-top: 1rem;
+}
+
+.result-card,
+.error-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.error-card {
+    border-left: 4px solid #dc3545;
+    background-color: #f8f9fa;
+}
+
+.result-card h3,
+.error-card h3 {
+    color: #003366;
+    margin: 0 0 1rem 0;
+    font-size: 1.2em;
+}
+
+.result-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item strong {
+    color: #003366;
+    font-weight: 600;
+    min-width: 150px;
+    text-align: left;
+}
+
+.result-item span {
+    flex: 1;
+    text-align: left;
+    color: #333;
+    word-break: break-word;
 }
