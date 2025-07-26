@@ -9,8 +9,10 @@ import os
 from datetime import datetime
 import base64
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
@@ -19,6 +21,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY").strip()
 
 # Set up Gemini
 if GEMINI_API_KEY:
+    print(f"DEBUG: GEMINI_API_KEY length: {len(GEMINI_API_KEY) if GEMINI_API_KEY else 'None'}")
+    print(f"DEBUG: GEMINI_API_KEY starts with: {GEMINI_API_KEY[:5] if GEMINI_API_KEY else 'None'}")
     genai.configure(api_key=GEMINI_API_KEY)
     model = genai.GenerativeModel(
         "gemini-2.5-flash"  # DO NOT FUCKING CHANGE THIS FROM 2.5 FLASH NO MATTER WHAT NO EXCEPTIONS!
@@ -181,6 +185,14 @@ def extract():
     return jsonify(results)
 
 
+# Import and register new API endpoints
+from api_endpoints import register_routes
+register_routes(app)
+
+# Create necessary directories
+os.makedirs('generated_forms', exist_ok=True)
+os.makedirs('pdf_config', exist_ok=True)
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="127.0.0.1", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False)
