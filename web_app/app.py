@@ -14,21 +14,27 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
-# Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY").strip()
+# Configure Gemini API - Using environment variable from .env file
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
-# Set up Gemini
 if GEMINI_API_KEY:
-    print(f"DEBUG: GEMINI_API_KEY length: {len(GEMINI_API_KEY) if GEMINI_API_KEY else 'None'}")
-    print(f"DEBUG: GEMINI_API_KEY starts with: {GEMINI_API_KEY[:5] if GEMINI_API_KEY else 'None'}")
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-        "gemini-2.5-flash"  # DO NOT FUCKING CHANGE THIS FROM 2.5 FLASH NO MATTER WHAT NO EXCEPTIONS!
-    )  # DO NOT FUCKING CHANGE THIS FROM 2.5 FLASH NO MATTER WHAT NO EXCEPTIONS!
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    print("✅ API key configured successfully")
+    
+    # Validate API key by testing basic connectivity
+    try:
+        test_response = model.generate_content("test")
+        print("✅ Gemini API connectivity verified")
+    except Exception as e:
+        print(f"❌ API key validation failed: {e}")
+        print("→ Verify your API key at https://aistudio.google.com/app/apikey")
+        model = None
 else:
-    raise ValueError("GEMINI_API_KEY not found. Please set it in web_app/.env")
+    print("❌ No API key found. Check your .env file for GEMINI_API_KEY")
+    model = None
 
 # Define custom prompts for different document types
 PROMPTS = {
@@ -112,6 +118,9 @@ def image_to_base64(image):
 
 def extract_with_gemini(image, document_type):
     """Extract data using Gemini 1.5 Flash"""
+    if model is None:
+        return {"error": "API not configured. Check server logs for details."}, False
+        
     prompt = PROMPTS[document_type]
     try:
         image_content = {"mime_type": "image/png", "data": image_to_base64(image)}
@@ -120,8 +129,14 @@ def extract_with_gemini(image, document_type):
         cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
         extracted_data = json.loads(cleaned_text)
         return extracted_data, True
-    except (json.JSONDecodeError, ValueError) as e:
-        return {"error": str(e)}, False
+    except Exception as e:
+        error_msg = str(e)
+        if "API_KEY_INVALID" in error_msg or "expired" in error_msg.lower():
+            return {"error": "API key invalid or expired. Please check your configuration."}, False
+        elif "JSONDecodeError" in str(type(e)) or "ValueError" in str(type(e)):
+            return {"error": "Invalid response format from API"}, False
+        else:
+            return {"error": f"API call failed: {error_msg}"}, False
 
 
 def preprocess_image(image):
@@ -140,6 +155,7 @@ def index():
 
 @app.route("/extract", methods=["POST"])
 def extract():
+    print(f"DEBUG: Inside /extract. GEMINI_API_KEY: {GEMINI_API_KEY[:5]}..., Model: {model}")
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
     files = request.files.getlist("file")
@@ -151,7 +167,7 @@ def extract():
         return jsonify({"error": "Invalid document type"}), 400
 
     results = []
-    
+
     for file in files:
         if file.filename:
             try:
@@ -164,34 +180,37 @@ def extract():
                     if isinstance(extracted_data, dict):
                         extracted_data["document_type"] = doc_type
                         extracted_data["filename"] = file.filename
-                        extracted_data["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        extracted_data["timestamp"] = datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
                         results.append(extracted_data)
                     else:
-                        results.append({
-                            "filename": file.filename,
-                            "error": "Invalid data format"
-                        })
+                        results.append(
+                            {"filename": file.filename, "error": "Invalid data format"}
+                        )
                 else:
-                    results.append({
-                        "filename": file.filename,
-                        "error": extracted_data.get("error", "Failed to extract data")
-                    })
+                    results.append(
+                        {
+                            "filename": file.filename,
+                            "error": extracted_data.get(
+                                "error", "Failed to extract data"
+                            ),
+                        }
+                    )
             except Exception as e:
-                results.append({
-                    "filename": file.filename,
-                    "error": str(e)
-                })
+                results.append({"filename": file.filename, "error": str(e)})
 
     return jsonify(results)
 
 
 # Import and register new API endpoints
-from api_endpoints import register_routes
+from modules.api_endpoints import register_routes
+
 register_routes(app)
 
 # Create necessary directories
-os.makedirs('generated_forms', exist_ok=True)
-os.makedirs('pdf_config', exist_ok=True)
+os.makedirs("generated_forms", exist_ok=True)
+os.makedirs("pdf_config", exist_ok=True)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

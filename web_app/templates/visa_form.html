@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Visa Form Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/visa_form.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Japanese Visa Application Form Generator</h1>
+        <p>Upload passports for automatic form filling</p>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="form-section">
+                <h2>Form Details</h2>
+                <div class="form-group">
+                    <label for="family_member_count">Number of Applicants:</label>
+                    <select id="family_member_count" name="family_member_count">
+                        <option value="0">Primary Applicant Only</option>
+                        <option value="1">Primary + 1 Family Member</option>
+                        <option value="2">Primary + 2 Family Members</option>
+                        <option value="3">Primary + 3 Family Members</option>
+                        <option value="4">Primary + 4 Family Members</option>
+                        <option value="5">Primary + 5 Family Members</option>
+                        <option value="6">Primary + 6 Family Members</option>
+                        <option value="7">Primary + 7 Family Members</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <h2>Passport Upload</h2>
+                
+                <!-- Primary Applicant (Always Visible) -->
+                <div class="member-upload" id="primary-section">
+                    <h3>Primary Applicant (申請人本人)</h3>
+                    <div class="upload-area">
+                        <label for="primary-passport">Upload Primary Passport:</label>
+                        <input type="file" id="primary-passport" class="member-file" accept="image/png, image/jpeg, image/jpg" multiple>
+                        <div class="preview-zone" id="primary-preview">
+                            <p>No passport uploaded yet</p>
+                        </div>
+                        <div class="extracted-data" id="primary-data" style="display: none;">
+                            <h4>Extracted Information:</h4>
+                            <div class="data-display"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Family Member Sections Container -->
+                <div id="family-members-container">
+                    <!-- Family member sections will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="generation-section">
+                <h2>Form Generation</h2>
+                <button id="generate-forms" class="btn-primary" disabled>
+                    Generate Visa Application Forms
+                </button>
+                
+                <div id="results-container" style="display: none;">
+                    <h3>Generated Forms:</h3>
+                    <div class="download-links">
+                        <a href="#" id="pdf-download" class="download-btn" target="_blank">
+                            <i class="pdf-icon"></i> Download PDF
+                        </a>
+                        <a href="#" id="word-download" class="download-btn" target="_blank">
+                            <i class="word-icon"></i> Download Word Document
+                        </a>
+                        <button id="email-draft" class="download-btn email-btn">
+                            <i class="email-icon"></i> Draft Email in Outlook
+                        </button>
+                    </div>
+                    <div id="email-instructions" class="instructions" style="display: none;">
+                        <p><strong>Email draft created!</strong></p>
+                        <p>Please remember to attach the passport images before sending.</p>
+                    </div>
+                </div>
+
+                <div id="loading-container" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Processing passports and generating forms...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/visa_form_generator.js') }}"></script>
+</body>
+</html>

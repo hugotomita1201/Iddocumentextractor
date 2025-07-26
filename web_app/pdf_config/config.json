@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "template": "japanese_visa_form",
+  "fields": [
+    {"name": "applicant_name", "field_id": "Text10", "x": 101, "y": 593},
+    {"name": "passport_number", "field_id": "Text18", "x": 101, "y": 521}
+  ],
+  "styles": {
+    "font": "Helvetica",
+    "size": 10,
+    "color": "black"
+  }
+}
